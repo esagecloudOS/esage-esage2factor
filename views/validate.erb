@@ -1,0 +1,88 @@
+<html>
+  <head>
+    <title>Abiquo 2 factor authentication</title>
+    <style>
+      @import url(http://fonts.googleapis.com/css?family=Exo:100,200,400);
+      @import url(http://fonts.googleapis.com/css?family=Source+Sans+Pro:700,400,300);
+    </style>
+    <script src="/jquery.min.js"></script>
+    <link rel="stylesheet" href="/abiquo2fa.css">
+  </head>
+  <body>
+
+    <div class="body"></div>
+      <div class="grad"></div>
+      <div class="header">
+        <div>Abiquo<br><span><strong>twoFactorAuthentication</strong></span></div>
+      </div>
+      <div id="token_status" class="status">
+        <img src="/loading.gif">
+        <p>Validating token</p>
+      </div>
+      <div class="login">
+        <div id="validate_form">
+          <input type="hidden" name="token_id" id="token_id" value=<%= "\"#{token_id}\"" %>>
+        <div>
+      </div>
+
+    <script>
+      function check_token_status() {
+        var queryjob;
+        var token_id = $("#token_id").val();
+        
+        if ((document.getElementById("token_status")) && (token_id != null)) {
+          executeQueryTokenStatus();
+        } else {
+          console.log("No suitable information provided!");
+          window.clearTimeout(queryjob);
+        }
+
+        function executeQueryTokenStatus() {
+          $.ajax({
+            url: '/status/'+token_id, 
+            dataType: "json",
+            success: function(data) {
+              console.log(data);
+              if (data == null) {
+                console.log("Wrong server response!");
+                window.clearTimeout(queryjob);
+              } else {
+                var status = data.status;
+                switch(status) {
+                  case 'SENT':
+                    $("#token_status").html('Token has been sent to provided email address.<br>Check your inbox and validate the token.');
+                    window.clearTimeout(queryjob);
+                    break;
+                  case 'LOOKUP_ERROR':
+                    $("#token_status").html('Provided Abiquo username and email address pair does not match.');
+                    $("#validate_form").html('<input type="button" onclick="history.back();" value="Back">');
+                    window.clearTimeout(queryjob);
+                    break;
+                  case 'CONNECTION_ERROR':
+                    $("#token_status").html('There was a problem connecting to Abiquo API.<br>Please, try again later or contact Abiquo administrator.');
+                    $("#validate_form").html('<input type="button" onclick="history.back();" value="Back">');
+                    window.clearTimeout(queryjob);
+                    break;
+                  case 'UNEXPECTED_ERROR':
+                    $("#token_status").html('There was an unexpected error.<br>Please, try again later or contact Abiquo administrator.');
+                    $("#validate_form").html('<input type="button" onclick="history.back();" value="Back">');
+                    window.clearTimeout(queryjob);
+                    break;                 
+                  case 'VALIDATED':
+                    $("#token_status").html('Redirecting to Abiquo login page.');
+                    $("#validate_form").html('');
+                    window.location.replace(<%= "\"#{abiquo_login_url}\"" %>);
+                    break;
+                }
+              }
+            }
+          });
+          queryjob = setTimeout(executeQueryTokenStatus, 5000);
+        }
+      }
+
+      $(document).on('page:change', check_token_status);
+      $(document).ready(check_token_status);
+    </script>
+  </body>
+</html>

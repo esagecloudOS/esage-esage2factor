@@ -1,0 +1,19 @@
+mysql:
+  user: root
+  pass:
+  db: token
+  host: localhost
+abiquo:
+  api_url: https://10.60.13.29/api
+  api_user: admin
+  api_pass: xabiquo
+  exclude_users: [1,2,4,5]
+  session_timeout: 1800
+  token_timeout: 300
+smtp:
+  smtp_user:
+  smtp_pass:
+  smtp_server: localhost
+  smtp_port: 25
+  mail_from: abiquo2f@mydomain.com
+  mail_subject: "Here is your Abiquo authentication token"
